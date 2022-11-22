@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
 import * as CryptoJS from 'crypto-js';
-import tf from '../../public/twofish';
+import tf from '../scripts/twofish';
 
-import Styles from '../../public/dec.css'
+import Styles from '../styles/dec.css'
 
 // make out instance of twofish
 const TwoFish = tf();
@@ -28,6 +28,8 @@ export default function Decrypter() {
     let decryptFile = () => {
         // make the pixels into a long string in base64
         let plaintext = TwoFish.decrypt({ ciphertext: CryptoJS.enc.Base64.parse(sourceData.ciphertext), salt: CryptoJS.enc.Hex.parse(sourceData.salt) }, document.getElementById('dec-key').value, { padding: CryptoJS.pad.NoPadding }).toString(CryptoJS.enc.Base64);
+
+        console.log('image plaintext b64', plaintext)
 
         let encodedPixels = new Uint8ClampedArray(Buffer.from(plaintext, 'base64'));
         let encodedImage = new ImageData(encodedPixels, sourceData.w, sourceData.h);

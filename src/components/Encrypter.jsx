@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
 import * as CryptoJS from 'crypto-js';
-import tf from '../../public/twofish';
+import tf from '../scripts/twofish';
 
-import Styles from '../../public/enc.css'
+import Styles from '../styles/enc.css'
 
 // make out instance of twofish
 const TwoFish = tf();
@@ -36,7 +36,12 @@ export default function Encrypter() {
             // make the pixels into a long string in base64
             let base64Image = Buffer.from(rawImage.data).toString('base64');
 
+            console.log('image raw b64', base64Image)
+
             let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), document.getElementById('enc-key').value, { padding: CryptoJS.pad.NoPadding });
+
+            console.log('ciphertext b64', ciphertext.ciphertext.toString(CryptoJS.enc.Base64))
+
 
             let encodedPixels = new Uint8ClampedArray(Buffer.from(ciphertext.ciphertext.toString(CryptoJS.enc.Base64), 'base64'));
             let encodedImage = new ImageData(encodedPixels, rawImage.width, rawImage.height);
@@ -47,7 +52,7 @@ export default function Encrypter() {
 
             // convert the canvas to an image then set it to the state
             setProcessedImage(canvas.toDataURL());
-            setProcessedData({ w: img.width, h: img.height, salt: ciphertext.salt.toString(CryptoJS.enc.Hex), ciphertext: ciphertext.ciphertext.toString(CryptoJS.enc.Base64) });
+            setProcessedData({ w: img.width, h: img.height, ciphertext: ciphertext.ciphertext.toString(CryptoJS.enc.Base64), salt: ciphertext.salt.toString(CryptoJS.enc.Hex) });
         };
 
         // load the image
