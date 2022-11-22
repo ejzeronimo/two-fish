@@ -8,16 +8,6 @@ import Styles from '../../public/enc.css'
 // make out instance of twofish
 const TwoFish = tf();
 
-
-// example of how to use
-// var key = "Testing"
-// var ciphertext = TwoFish.encrypt("Hello World!", key, null).toString();
-// var plaintext = TwoFish.decrypt(ciphertext, key, null);
-
-// var decryptedData = plaintext.toString(CryptoJS.enc.Utf8);
-// console.log(decryptedData);
-
-
 const dragOverHandler = (ev) => {
     ev.preventDefault();
 }
@@ -25,6 +15,7 @@ const dragOverHandler = (ev) => {
 export default function Encrypter() {
     const [sourceName, setSourceName] = useState('');
     const [sourceImage, setSourceImage] = useState('');
+    const [processedData, setProcessedData] = useState({});
     const [processedImage, setProcessedImage] = useState('');
 
     let encryptFile = () => {
@@ -45,9 +36,10 @@ export default function Encrypter() {
             // make the pixels into a long string in base64
             let base64Image = Buffer.from(rawImage.data).toString('base64');
 
-            let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), document.getElementById('enc-key').value, { padding: CryptoJS.pad.ZeroPadding }).ciphertext.toString(CryptoJS.enc.Base64);
-            let encodedPixels = new Uint8ClampedArray(Buffer.from(ciphertext, 'base64'));
-            let encodedImage = new ImageData(encodedPixels, rawImage.width, rawImage.height, { colorSpace: rawImage.colorSpace });
+            let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), document.getElementById('enc-key').value, { padding: CryptoJS.pad.NoPadding });
+
+            let encodedPixels = new Uint8ClampedArray(Buffer.from(ciphertext.ciphertext.toString(CryptoJS.enc.Base64), 'base64'));
+            let encodedImage = new ImageData(encodedPixels, rawImage.width, rawImage.height);
 
             // put the image data back onto the canvas
             context.putImageData(encodedImage, 0, 0);
@@ -55,6 +47,7 @@ export default function Encrypter() {
 
             // convert the canvas to an image then set it to the state
             setProcessedImage(canvas.toDataURL());
+            setProcessedData({ w: img.width, h: img.height, salt: ciphertext.salt.toString(CryptoJS.enc.Hex), ciphertext: ciphertext.ciphertext.toString(CryptoJS.enc.Base64) });
         };
 
         // load the image
@@ -65,10 +58,17 @@ export default function Encrypter() {
         if (processedImage) {
             let a = document.createElement("a");
             a.href = processedImage;
-            a.download = 'Encrypted.png';
+            a.download = processedData.salt + '.png';
 
             a.click();
             a.remove();
+
+            let b = document.createElement("a");
+            b.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(processedData));
+            b.download = processedData.salt + '.json';
+
+            b.click();
+            b.remove();
         }
     };
 
