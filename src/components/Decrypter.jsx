@@ -1,59 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
-import * as CryptoJS from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import tf from '../scripts/twofish';
-
-import Styles from '../styles/dec.css'
+import {generatePngUri,  getImageFromPngUri } from '../scripts/PngGenerator';
+import { getKeyAndIV } from '../scripts/helper';
 
 // make out instance of twofish
 const TwoFish = tf();
 
-// example of how to use
-// var key = "Testing"
-// var ciphertext = TwoFish.encrypt("Hello World!", key, null).toString();
-// var plaintext = TwoFish.decrypt(ciphertext, key, null);
-
-// var decryptedData = plaintext.toString(CryptoJS.enc.Utf8);
-// console.log(decryptedData);
-
 const dragOverHandler = (ev) => {
     ev.preventDefault();
-}
+};
 
 export default function Decrypter() {
     const [sourceName, setSourceName] = useState('');
-    const [sourceData, setSourceData] = useState({});
+    const [sourceImage, setSourceImage] = useState('');
     const [processedImage, setProcessedImage] = useState('');
 
     let decryptFile = () => {
-        // make the pixels into a long string in base64
-        let plaintext = TwoFish.decrypt({ ciphertext: CryptoJS.enc.Base64.parse(sourceData.ciphertext), salt: CryptoJS.enc.Hex.parse(sourceData.salt) }, document.getElementById('dec-key').value, { padding: CryptoJS.pad.NoPadding }).toString(CryptoJS.enc.Base64);
+        // after we have the file, we need to get the pixels
+        let imgRaw = new Image();
 
-        console.log('image plaintext b64', plaintext)
+        imgRaw.onload = () => {
+            // convert uri to png data
+            let img = getImageFromPngUri(imgRaw.src);
 
-        let encodedPixels = new Uint8ClampedArray(Buffer.from(plaintext, 'base64'));
-        let encodedImage = new ImageData(encodedPixels, sourceData.w, sourceData.h);
+            // make the pixels into a long string in base64
+            let base64Image = Buffer.from(img.data).toString('base64');
 
-        // create a hidden working canvas
-        let canvas = document.createElement('canvas');
-        let context = canvas.getContext('2d');
+            // make the pixels into a long string in base64
+            let keyObject = getKeyAndIV(document.getElementById('dec-key').value);
+            let plaintext = TwoFish.decrypt({ ciphertext: CryptoJS.enc.Base64.parse(base64Image) }, keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv }).toString(CryptoJS.enc.Base64);
 
-        canvas.width = sourceData.w;
-        canvas.height = sourceData.h;
+            let encodedPixels = new Uint8ClampedArray(Buffer.from(plaintext, 'base64'));
 
-        // put the image data back onto the canvas
-        context.putImageData(encodedImage, 0, 0);
-        canvas.remove();
+            // convert the canvas to an image then set it to the state
+            setProcessedImage(generatePngUri(img.width, img.height, encodedPixels));
+        };
 
-        // convert the canvas to an image then set it to the state
-        setProcessedImage(canvas.toDataURL());
+        // load the image
+        imgRaw.src = sourceImage;
     };
 
     let downloadFile = () => {
         if (processedImage) {
             let a = document.createElement("a");
             a.href = processedImage;
-            a.download = 'out.png';
+            a.download = '[Decrypted]' + sourceName.split('.')[0].replace('[Encrypted]','') + '.png';
 
             a.click();
             a.remove();
@@ -66,15 +59,13 @@ export default function Decrypter() {
         let read = new FileReader();
 
         read.onload = (e) => {
-            let data = JSON.parse(e.target.result);
-
-            setSourceData(data);
+            setSourceImage(e.target.result);
             setSourceName(selectedFile.name);
         };
 
         if (selectedFile) {
             // get it this way for base 64 link
-            read.readAsText(selectedFile);
+            read.readAsDataURL(selectedFile);
         }
     };
 
@@ -116,14 +107,14 @@ export default function Decrypter() {
         }
     });
 
-    return <div className='dec-card'>
+    return <div id='dec-card' className='card'>
         <div>
             <h1>Decrypt:</h1>
 
             <label htmlFor='dec-key'>Key:</label>
-            <input type='text' id='dec-key' name='dec-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
+            <input type='text' id='dec-key' className='key' name='dec-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
 
-            <div className='dec-file-drop' id='dec-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
+            <div className='file-drop' id='dec-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
                 <div>
                     <p>
                         Drag and drop a file or <label htmlFor='dec-file'><i>choose file...</i></label>
@@ -131,13 +122,13 @@ export default function Decrypter() {
                         <i>{sourceName}</i>
                     </p>
                     {/* this is hidden */}
-                    <input type='file' id='dec-file' onChange={fileHandler} name='dec-file' accept='.json' />
+                    <input type='file' id='dec-file' className='file' onChange={fileHandler} name='dec-file' accept='image/png' />
                 </div>
             </div>
 
-            <canvas id='dec-image' width='0' height='0'></canvas>
+            <canvas id='dec-image' className='image' width='0' height='0'></canvas>
 
-            <div className='dec-button-bar'>
+            <div className='button-bar'>
                 <button onClick={decryptFile}>Decrypt</button>
                 <button onClick={downloadFile}>Download</button>
             </div>

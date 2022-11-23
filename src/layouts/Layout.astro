@@ -11,26 +11,38 @@ const { title } = Astro.props;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
+		<link
+			rel="icon"
+			href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐟</text></svg>"
+		/>
+		<meta name="generator" content={Astro.generator} /><title>
+			{title}
+		</title>
 	</head>
+
 	<body>
 		<slot />
 	</body>
+
+	<style is:global>
+		:root {
+			--accent: 46,139,87;
+			--accent-gradient: linear-gradient(
+				45deg,
+				rgb(var(--accent)),
+				#98FB98 30%,
+				#2d3134 60%
+			);
+		}
+		html {
+			font-family: system-ui, sans-serif;
+			background-color: #1d1f21;
+			color: #f6f6f6;
+		}
+		code {
+			font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
+				DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New,
+				monospace;
+		}
+	</style>
 </html>
-<style is:global>
-	:root {
-		--accent: 124, 58, 237;
-		--accent-gradient: linear-gradient(45deg, rgb(var(--accent)), #da62c4 30%, white 60%);
-	}
-	html {
-		font-family: system-ui, sans-serif;
-		background-color: #1d1f21;
-		color: #F6F6F6;
-	}
-	code {
-		font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
-			Bitstream Vera Sans Mono, Courier New, monospace;
-	}
-</style>

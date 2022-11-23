@@ -1,0 +1,9 @@
+#dec-card {
+    --accent: 70,130,180;
+    --accent-gradient: linear-gradient(45deg, rgb(var(--accent)), #4169E1 30%, #2d3134 60%);
+}
+
+#enc-card {
+    --accent: 220, 20, 60;
+    --accent-gradient: linear-gradient(45deg, rgb(var(--accent)), #FA8072 30%, #2d3134 60%);
+}

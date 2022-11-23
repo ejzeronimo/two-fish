@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
-import * as CryptoJS from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import tf from '../scripts/twofish';
-
-import Styles from '../styles/enc.css'
+import { generatePngUri } from '../scripts/PngGenerator';
+import { getKeyAndIV } from '../scripts/helper';
 
 // make out instance of twofish
 const TwoFish = tf();
 
 const dragOverHandler = (ev) => {
     ev.preventDefault();
-}
+};
 
 export default function Encrypter() {
     const [sourceName, setSourceName] = useState('');
     const [sourceImage, setSourceImage] = useState('');
-    const [processedData, setProcessedData] = useState({});
     const [processedImage, setProcessedImage] = useState('');
 
     let encryptFile = () => {
@@ -33,26 +32,18 @@ export default function Encrypter() {
             context.drawImage(img, 0, 0);
             let rawImage = context.getImageData(0, 0, canvas.width, canvas.height);
 
+            canvas.remove();
+
             // make the pixels into a long string in base64
             let base64Image = Buffer.from(rawImage.data).toString('base64');
 
-            console.log('image raw b64', base64Image)
-
-            let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), document.getElementById('enc-key').value, { padding: CryptoJS.pad.NoPadding });
-
-            console.log('ciphertext b64', ciphertext.ciphertext.toString(CryptoJS.enc.Base64))
-
+            let keyObject = getKeyAndIV(document.getElementById('enc-key').value);
+            let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
 
             let encodedPixels = new Uint8ClampedArray(Buffer.from(ciphertext.ciphertext.toString(CryptoJS.enc.Base64), 'base64'));
-            let encodedImage = new ImageData(encodedPixels, rawImage.width, rawImage.height);
-
-            // put the image data back onto the canvas
-            context.putImageData(encodedImage, 0, 0);
-            canvas.remove();
 
             // convert the canvas to an image then set it to the state
-            setProcessedImage(canvas.toDataURL());
-            setProcessedData({ w: img.width, h: img.height, ciphertext: ciphertext.ciphertext.toString(CryptoJS.enc.Base64), salt: ciphertext.salt.toString(CryptoJS.enc.Hex) });
+            setProcessedImage(generatePngUri(rawImage.width, rawImage.height, encodedPixels));
         };
 
         // load the image
@@ -63,17 +54,10 @@ export default function Encrypter() {
         if (processedImage) {
             let a = document.createElement("a");
             a.href = processedImage;
-            a.download = processedData.salt + '.png';
+            a.download = '[Encrypted]' + sourceName.split('.')[0] + '.png';
 
             a.click();
             a.remove();
-
-            let b = document.createElement("a");
-            b.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(processedData));
-            b.download = processedData.salt + '.json';
-
-            b.click();
-            b.remove();
         }
     };
 
@@ -131,14 +115,14 @@ export default function Encrypter() {
         }
     });
 
-    return <div className='enc-card'>
+    return <div id='enc-card' className='card'>
         <div>
             <h1>Encrypt:</h1>
 
             <label htmlFor='enc-key'>Key:</label>
-            <input type='text' id='enc-key' name='enc-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
+            <input type='text' id='enc-key' className='key' name='enc-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
 
-            <div className='enc-file-drop' id='enc-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
+            <div className='file-drop' id='enc-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
                 <div>
                     <p>
                         Drag and drop a file or <label htmlFor='enc-file'><i>choose file...</i></label>
@@ -146,13 +130,13 @@ export default function Encrypter() {
                         <i>{sourceName}</i>
                     </p>
                     {/* this is hidden */}
-                    <input type='file' id='enc-file' onChange={fileHandler} name='enc-file' accept='image/png, image/jpeg' />
+                    <input type='file' id='enc-file' className='file' onChange={fileHandler} name='enc-file' accept='image/png, image/jpeg' />
                 </div>
             </div>
 
-            <canvas id='enc-image' width='0' height='0'></canvas>
+            <canvas id='enc-image' className='image' width='0' height='0'></canvas>
 
-            <div className='enc-button-bar'>
+            <div className='button-bar'>
                 <button onClick={encryptFile}>Encrypt</button>
                 <button onClick={downloadFile}>Download</button>
             </div>

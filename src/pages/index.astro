@@ -4,38 +4,50 @@ import Card from "../components/Card.astro";
 import Encrypter from "../components/Encrypter";
 import Decrypter from "../components/Decrypter";
 
-import '../styles/enc.css';
-import '../styles/dec.css';
+import "../styles/style.css";
+import "../styles/overwrites.css";
 ---
 
-<Layout title="Twofish blockcipher">
+<Layout title="Encrypt you photos!">
 	<main>
-		<!-- <h1>Welcome to <span class="text-gradient">Astro</span></h1> -->
+		<h1><span class="text-gradient">Twofish</span> blockcipher demo</h1>
+
+		<p class="instructions">
+			This site allows you to encrypt and decrypt images using the <strong> twofish </strong> algorithm. 
+			If you want to encrypt raw data, you can do that using the REST api:
+			<br>
+			<br>
+			<code>/api/encrypt</code> takes an object with <strong>key</strong> and <strong>plaintext</strong> attributes and returns the encrypted data. 
+			<br>
+			<code>/api/decrypt</code> takes an object with <strong>key</strong> and <strong>ciphertext</strong> attributes and returns the decrypted data.
+			<br>
+			<br>
+			Both endpoints expect the <strong>plaintext/ciphertext</strong> to be in base64 and they return the results in base64.
+			<b>DO NOT</b> use this for security as this demo is purely for academic demonstration purposes!
+		</p>
 
 		<div class="link-card-grid">
 			<Encrypter client:load client:only />
 			<Decrypter client:load client:only />
 		</div>
 
-		<!-- <p class="instructions">
-			To get started, open the directory <code>src/pages</code> in your project.<br
-			/>
-			<strong>Code Challenge:</strong> Tweak the "Welcome to Astro" message
-			above.
-		</p>
-
 		<ul role="list" class="link-card-grid">
 			<Card
 				href="https://en.wikipedia.org/wiki/Twofish"
 				title="Learn More"
-				body="Interested in the twofish blockcipher? Learn more here!"
+				body="Interested in the twofish blockcipher, learn more here."
 			/>
 			<Card
-				href="https://en.wikipedia.org/wiki/Twofish"
-				title="Src"
-				body="Interested in the twofish blockcipher? Learn more here!"
+				href="https://github.com/ejzeronimo/two-fish"
+				title="Source"
+				body="Want to know how this was made? Here's a link to the source repo!"
 			/>
-		</ul> -->
+			<Card
+				href="https://github.com/ejzeronimo?tab=repositories"
+				title="Other projects"
+				body="I make some cool stuff from timt to time, find the rest of it here."
+			/>
+		</ul>
 	</main>
 </Layout>
 
@@ -60,8 +72,7 @@ import '../styles/dec.css';
 	.instructions {
 		line-height: 1.6;
 		margin: 1rem 0;
-		border: 1px solid rgba(var(--accent), 25%);
-		background-color: white;
+		background-color: #2d3134;
 		padding: 1rem;
 		border-radius: 0.4rem;
 	}
