@@ -3,34 +3,13 @@ import { Buffer } from 'buffer';
 import CryptoJS from 'crypto-js';
 import tf from '../scripts/twofish';
 import {generatePngUri,  getImageFromPngUri } from '../scripts/PngGenerator';
+import { getKeyAndIV } from '../scripts/helper';
 
 // make out instance of twofish
 const TwoFish = tf();
 
 const dragOverHandler = (ev) => {
     ev.preventDefault();
-};
-
-const getKeyAndIV = function (password) {
-    let iterations = 234;
-
-    let salt = {
-        words: [
-            1960224351,
-            3636945735,
-            1878752334,
-            389456778
-        ],
-        sigBytes: 16
-    };
-
-    let iv128Bits = CryptoJS.PBKDF2(password, salt, { keySize: 2, iterations: iterations });
-    let key256Bits = CryptoJS.PBKDF2(password, salt, { keySize: 4, iterations: iterations });
-
-    return {
-        iv: iv128Bits,
-        key: key256Bits
-    };
 };
 
 export default function Decrypter() {
@@ -67,7 +46,7 @@ export default function Decrypter() {
         if (processedImage) {
             let a = document.createElement("a");
             a.href = processedImage;
-            a.download = '[Decrypted]' + sourceName.split('.')[0] + '.png';
+            a.download = '[Decrypted]' + sourceName.split('.')[0].replace('[Encrypted]','') + '.png';
 
             a.click();
             a.remove();
@@ -128,14 +107,14 @@ export default function Decrypter() {
         }
     });
 
-    return <div className='dec-card'>
+    return <div id='dec-card' className='card'>
         <div>
             <h1>Decrypt:</h1>
 
             <label htmlFor='dec-key'>Key:</label>
-            <input type='text' id='dec-key' name='dec-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
+            <input type='text' id='dec-key' className='key' name='dec-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
 
-            <div className='dec-file-drop' id='dec-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
+            <div className='file-drop' id='dec-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
                 <div>
                     <p>
                         Drag and drop a file or <label htmlFor='dec-file'><i>choose file...</i></label>
@@ -143,13 +122,13 @@ export default function Decrypter() {
                         <i>{sourceName}</i>
                     </p>
                     {/* this is hidden */}
-                    <input type='file' id='dec-file' onChange={fileHandler} name='dec-file' accept='image/png' />
+                    <input type='file' id='dec-file' className='file' onChange={fileHandler} name='dec-file' accept='image/png' />
                 </div>
             </div>
 
-            <canvas id='dec-image' width='0' height='0'></canvas>
+            <canvas id='dec-image' className='image' width='0' height='0'></canvas>
 
-            <div className='dec-button-bar'>
+            <div className='button-bar'>
                 <button onClick={decryptFile}>Decrypt</button>
                 <button onClick={downloadFile}>Download</button>
             </div>

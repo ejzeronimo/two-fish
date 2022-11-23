@@ -1,36 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
-import * as CryptoJS from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import tf from '../scripts/twofish';
 import { generatePngUri } from '../scripts/PngGenerator';
+import { getKeyAndIV } from '../scripts/helper';
 
 // make out instance of twofish
 const TwoFish = tf();
 
 const dragOverHandler = (ev) => {
     ev.preventDefault();
-};
-
-const getKeyAndIV = function (password) {
-    let iterations = 234;
-
-    let salt = {
-        words: [
-            1960224351,
-            3636945735,
-            1878752334,
-            389456778
-        ],
-        sigBytes: 16
-    };
-
-    let iv128Bits = CryptoJS.PBKDF2(password, salt, { keySize: 2, iterations: iterations });
-    let key256Bits = CryptoJS.PBKDF2(password, salt, { keySize: 4, iterations: iterations });
-
-    return {
-        iv: iv128Bits,
-        key: key256Bits
-    };
 };
 
 export default function Encrypter() {
@@ -43,7 +22,7 @@ export default function Encrypter() {
         let img = new Image();
 
         img.onload = () => {
-                        // create a hidden working canvas
+            // create a hidden working canvas
             let canvas = document.createElement('canvas');
             let context = canvas.getContext('2d');
 
@@ -62,8 +41,6 @@ export default function Encrypter() {
             let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
 
             let encodedPixels = new Uint8ClampedArray(Buffer.from(ciphertext.ciphertext.toString(CryptoJS.enc.Base64), 'base64'));
-
-            console.log('encrypted pixels out', [...encodedPixels]);
 
             // convert the canvas to an image then set it to the state
             setProcessedImage(generatePngUri(rawImage.width, rawImage.height, encodedPixels));
@@ -138,14 +115,14 @@ export default function Encrypter() {
         }
     });
 
-    return <div className='enc-card'>
+    return <div id='enc-card' className='card'>
         <div>
             <h1>Encrypt:</h1>
 
             <label htmlFor='enc-key'>Key:</label>
-            <input type='text' id='enc-key' name='enc-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
+            <input type='text' id='enc-key' className='key' name='enc-key' placeholder='619ca281893546bc9ca882fce57b4f67'></input>
 
-            <div className='enc-file-drop' id='enc-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
+            <div className='file-drop' id='enc-file-drop' onDrop={dropHandler} onDragOver={dragOverHandler}>
                 <div>
                     <p>
                         Drag and drop a file or <label htmlFor='enc-file'><i>choose file...</i></label>
@@ -153,13 +130,13 @@ export default function Encrypter() {
                         <i>{sourceName}</i>
                     </p>
                     {/* this is hidden */}
-                    <input type='file' id='enc-file' onChange={fileHandler} name='enc-file' accept='image/png, image/jpeg' />
+                    <input type='file' id='enc-file' className='file' onChange={fileHandler} name='enc-file' accept='image/png, image/jpeg' />
                 </div>
             </div>
 
-            <canvas id='enc-image' width='0' height='0'></canvas>
+            <canvas id='enc-image' className='image' width='0' height='0'></canvas>
 
-            <div className='enc-button-bar'>
+            <div className='button-bar'>
                 <button onClick={encryptFile}>Encrypt</button>
                 <button onClick={downloadFile}>Download</button>
             </div>
