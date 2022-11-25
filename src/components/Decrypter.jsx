@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
+import { getKeyAndIV, generatePngUri, getImageFromPngUri } from '../scripts/helper';
 import CryptoJS from 'crypto-js';
 import tf from '../scripts/twofish';
-import {generatePngUri,  getImageFromPngUri } from '../scripts/PngGenerator';
-import { getKeyAndIV } from '../scripts/helper';
 
 // make out instance of twofish
 const TwoFish = tf();
@@ -30,12 +29,23 @@ export default function Decrypter() {
 
             // make the pixels into a long string in base64
             let keyObject = getKeyAndIV(document.getElementById('dec-key').value);
-            let plaintext = TwoFish.decrypt({ ciphertext: CryptoJS.enc.Base64.parse(base64Image) }, keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv }).toString(CryptoJS.enc.Base64);
+            let plaintext = TwoFish.decrypt({ ciphertext: CryptoJS.enc.Base64.parse(base64Image) }, keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
 
-            let encodedPixels = new Uint8ClampedArray(Buffer.from(plaintext, 'base64'));
+            let rawOut = new Int32Array(plaintext.words);
+            let bytesOut = new Uint8Array(rawOut.buffer);
 
-            // convert the canvas to an image then set it to the state
-            setProcessedImage(generatePngUri(img.width, img.height, encodedPixels));
+            let fixed = [];
+
+            for (let i = 0; i < bytesOut.length - 3; i += 4) {
+                for (let j = 3; j >= 0; j--) {
+                    fixed.push(bytesOut[i + j]);
+                }
+            }
+
+            generatePngUri(img.width, img.height, fixed).then((result) => {
+                // convert the canvas to an image then set it to the state
+                setProcessedImage(result);
+            });
         };
 
         // load the image
@@ -46,7 +56,7 @@ export default function Decrypter() {
         if (processedImage) {
             let a = document.createElement("a");
             a.href = processedImage;
-            a.download = '[Decrypted]' + sourceName.split('.')[0].replace('[Encrypted]','') + '.png';
+            a.download = '[Decrypted]' + sourceName.split('.')[0].replace('[Encrypted]', '') + '.png';
 
             a.click();
             a.remove();

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
+import { getKeyAndIV, generatePngUri } from '../scripts/helper';
 import CryptoJS from 'crypto-js';
 import tf from '../scripts/twofish';
-import { generatePngUri } from '../scripts/PngGenerator';
-import { getKeyAndIV } from '../scripts/helper';
 
 // make out instance of twofish
 const TwoFish = tf();
@@ -36,14 +35,25 @@ export default function Encrypter() {
 
             // make the pixels into a long string in base64
             let base64Image = Buffer.from(rawImage.data).toString('base64');
-
             let keyObject = getKeyAndIV(document.getElementById('enc-key').value);
+
             let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
 
-            let encodedPixels = new Uint8ClampedArray(Buffer.from(ciphertext.ciphertext.toString(CryptoJS.enc.Base64), 'base64'));
+            let rawOut = new Int32Array(ciphertext.ciphertext.words);
+            let bytesOut = new Uint8Array(rawOut.buffer);
 
-            // convert the canvas to an image then set it to the state
-            setProcessedImage(generatePngUri(rawImage.width, rawImage.height, encodedPixels));
+            let fixed = [];
+
+            for (let i = 0; i < bytesOut.length - 3; i += 4) {
+                for (let j = 3; j >= 0; j--) {
+                    fixed.push(bytesOut[i + j]);
+                }
+            }
+
+            generatePngUri(img.width, img.height, fixed).then((result) => {
+                // convert the canvas to an image then set it to the state
+                setProcessedImage(result);
+            });
         };
 
         // load the image
