@@ -37,7 +37,7 @@ export default function Encrypter() {
             let base64Image = Buffer.from(rawImage.data).toString('base64');
             let keyObject = getKeyAndIV(document.getElementById('enc-key').value);
 
-            let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
+            let ciphertext = TwoFish.encrypt(CryptoJS.enc.Base64.parse(base64Image), keyObject.key, { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
 
             let rawOut = new Int32Array(ciphertext.ciphertext.words);
             let bytesOut = new Uint8Array(rawOut.buffer);
