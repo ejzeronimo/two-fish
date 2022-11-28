@@ -29,7 +29,7 @@ export default function Decrypter() {
 
             // make the pixels into a long string in base64
             let keyObject = getKeyAndIV(document.getElementById('dec-key').value);
-            let plaintext = TwoFish.decrypt({ ciphertext: CryptoJS.enc.Base64.parse(base64Image) }, keyObject.key, { padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
+            let plaintext = TwoFish.decrypt({ ciphertext: CryptoJS.enc.Base64.parse(base64Image) }, keyObject.key, { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.NoPadding, iv: keyObject.iv });
 
             let rawOut = new Int32Array(plaintext.words);
             let bytesOut = new Uint8Array(rawOut.buffer);
