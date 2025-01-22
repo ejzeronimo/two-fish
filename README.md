@@ -3,9 +3,6 @@
 # Twofish demo
 This is a demo website built to show what the twofish block cipher does to data. This repo is my final project for the CNIT 370 class. 
 
-## Archived
-This repo is part of my college coursework and will be archived as I have completed college and no changes will be made to them.
-
 ## Usage
 Please do not use these project as your own, I built this project and it's supporting materials myself and it will be considered plagiarism.
 
